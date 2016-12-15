@@ -1,8 +1,14 @@
+// require the file system so that we can read files
 var fs = require('fs');
+
+// require the javascript file with our keys
 var keysJS = require('./keys.js');
 
+// require the appropriate libraries
 var Twitter = require('twitter');
+var Spotify = require('spotify');
 
+// figure out what the user wants program to do
 var action = process.argv[2];
 
 switch (action) {
@@ -20,7 +26,7 @@ switch (action) {
 		break;
 }
 
-// show last 20 tweets and when they were created
+// tweet function: show last 20 tweets and when they were created
 function tweetFn(){
 	// initialize twitter API keys
 	var client = new Twitter({
@@ -44,11 +50,49 @@ function tweetFn(){
 	});
 }
 
-// Displays:
-// * Artist(s)
-// * The song's name
-// * A preview link of the song from Spotify
-// * The album that the song is from
+// spotify function: displays artist, song name, preview link from Spotify, album
+// * if no song is provided then default to "The Sign" by Ace of Base
 function spotifyFn(){
+	var songName = process.argv.slice(3,process.argv.length);
+	songName = songName.join(" ");
+	console.log(songName);
+	if (songName.length === 0){
+		console.log('You did not enter a song, so please enjoy the musical stylings of Ace of Base.\n');
+		console.log('Artist(s): Ace of Base');
+		console.log('Song Name: The Sign');
+		console.log('Album: The Sign (US Album) [Remastered]');
+		console.log('Preview Link: https://p.scdn.co/mp3-preview/177e65fc2b8babeaf9266c0ad2a1cb1e18730ae4?cid=null' +'\n');
+		return;
+	}
+
+	Spotify.search({ type: 'track', query: songName }, function(err, data) {
+	    if ( err ) {
+	        console.log('Error occurred: ' + err);
+	        return;
+	    }
+	 	else{
+	 		for (var i = 0; i < data.tracks.items.length; i++){
+	 			console.log('Artist(s): ' + data.tracks.items[i].artists[0].name);
+				console.log('Song Name: ' + data.tracks.items[i].name)
+				console.log('Album: ' + data.tracks.items[i].album.name);
+				//console.log('Preview Link: ' + data.tracks.items[i].album.artists[0].external_urls.spotify +'\n');
+				console.log('Preview Link: ' + data.tracks.items[i].preview_url +'\n');
+			}
+	 	}
+	});
+}
+
+// omdb function: displays title, year of release, IMDB rating,
+// country, language, plot, actors, rotten tomatoes rating and
+// rotten tomatoes URL
+function movieFn(){
+	var movieName = process.argv.slice(3,process.argv.length);
+	movieName = movieName.join(" ");
+	if (movieName.length === 0){
+		movieName = "Mr. Nobody";
+	}
+}
+
+function doFn(){
 	
 }
