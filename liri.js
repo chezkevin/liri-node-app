@@ -7,23 +7,29 @@ var keysJS = require('./keys.js');
 // require the appropriate libraries
 var Twitter = require('twitter');
 var Spotify = require('spotify');
+var Request = require('request');
 
-// figure out what the user wants program to do
 var action = process.argv[2];
 
-switch (action) {
-	case "my-tweets":
-		tweetFn();
-		break;
-	case "spotify-this-song":
-		spotifyFn();
-		break;
-	case "movie-this":
-		movieFn();
-		break;
-	case "do-what-it-says":
-		doFn();
-		break;
+function switchFn(action){
+	switch (action) {
+		case "my-tweets":
+			tweetFn();
+			break;
+		case "spotify-this-song":
+			var title = process.argv.slice(3,process.argv.length);
+			tite = title.join(" ");
+			spotifyFn(title);
+			break;
+		case "movie-this":
+			var title = process.argv.slice(3,process.argv.length);
+			tite = title.join(" ");
+			movieFn(process.argv.slice(3,process.argv.length));
+			break;
+		case "do-what-it-says":
+			doFn();
+			break;
+	}
 }
 
 // tweet function: show last 20 tweets and when they were created
@@ -52,10 +58,7 @@ function tweetFn(){
 
 // spotify function: displays artist, song name, preview link from Spotify, album
 // * if no song is provided then default to "The Sign" by Ace of Base
-function spotifyFn(){
-	var songName = process.argv.slice(3,process.argv.length);
-	songName = songName.join(" ");
-	console.log(songName);
+function spotifyFn(songName){
 	if (songName.length === 0){
 		console.log('You did not enter a song, so please enjoy the musical stylings of Ace of Base.\n');
 		console.log('Artist(s): Ace of Base');
@@ -71,7 +74,8 @@ function spotifyFn(){
 	        return;
 	    }
 	 	else{
-	 		for (var i = 0; i < data.tracks.items.length; i++){
+	 		//for (var i = 0; i < data.tracks.items.length; i++){
+	 		for (var i = 0; i < 1; i++){
 	 			console.log('Artist(s): ' + data.tracks.items[i].artists[0].name);
 				console.log('Song Name: ' + data.tracks.items[i].name)
 				console.log('Album: ' + data.tracks.items[i].album.name);
@@ -85,14 +89,51 @@ function spotifyFn(){
 // omdb function: displays title, year of release, IMDB rating,
 // country, language, plot, actors, rotten tomatoes rating and
 // rotten tomatoes URL
-function movieFn(){
-	var movieName = process.argv.slice(3,process.argv.length);
-	movieName = movieName.join(" ");
+function movieFn(movieName){
 	if (movieName.length === 0){
 		movieName = "Mr. Nobody";
 	}
+	var omdbURL = "http://www.omdbapi.com?tomatoes=true&t=" + movieName;
+	Request(omdbURL, function (error, response, data) {
+		if (!error && response.statusCode == 200) {
+			data = JSON.parse(data);
+			console.log("Title: " + data.Title);
+			console.log("Year of release: " + data.Year);
+			console.log("IMDB rating: " + data.imdbRating);
+			console.log("Country: " + data.Country);
+			console.log("Language: " + data.Language);
+			console.log("Plot: " + data.Plot);
+			console.log("Actors: " + data.Actors);
+			console.log("Rotten Tomatoes Rating: " + data.tomatoRating);
+			console.log("Rotten Tomatoes URL: " + data.tomatoURL);
+		}
+	});
 }
 
 function doFn(){
-	
+	// read the existing  file
+	fs.readFile("random.txt", "utf8", function(err, data) {
+
+		// Break down all the numbers inside
+		data = data.split(",");
+		action = data[0];
+		title = data[1];
+		switch (action) {
+			case "my-tweets":
+				tweetFn();
+				break;
+			case "spotify-this-song":
+				spotifyFn(title);
+				break;
+			case "movie-this":
+				movieFn(title);
+				break;
+			case "do-what-it-says":
+				doFn();
+				break;
+		}
+	});
 }
+
+// figure out what the user wants program to do
+switchFn(process.argv[2]);
